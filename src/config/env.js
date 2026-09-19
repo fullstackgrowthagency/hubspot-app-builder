@@ -10,8 +10,11 @@ export function getEnv() {
     cwd,
     dataDir,
     secretKey: process.env.HAB_SECRET_KEY || null,
-    host: process.env.HAB_HOST || '127.0.0.1',
-    port: Number(process.env.HAB_PORT || 4173),
+    // Passenger-style hosting (Hostinger's Node.js app hosting included) assigns
+    // its own port via the standard PORT env var and proxies to it — HAB_PORT is
+    // only an override for environments that don't set PORT themselves.
+    host: process.env.HAB_HOST || '0.0.0.0',
+    port: Number(process.env.PORT || process.env.HAB_PORT || 4173),
     basicAuthUser: process.env.HAB_BASIC_AUTH_USER || null,
     basicAuthPassword: process.env.HAB_BASIC_AUTH_PASSWORD || null
   };
