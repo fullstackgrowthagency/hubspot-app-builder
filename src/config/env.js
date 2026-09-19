@@ -11,6 +11,8 @@ export function getEnv() {
     dataDir,
     secretKey: process.env.HAB_SECRET_KEY || null,
     host: process.env.HAB_HOST || '127.0.0.1',
-    port: Number(process.env.HAB_PORT || 4173)
+    port: Number(process.env.HAB_PORT || 4173),
+    basicAuthUser: process.env.HAB_BASIC_AUTH_USER || null,
+    basicAuthPassword: process.env.HAB_BASIC_AUTH_PASSWORD || null
   };
 }

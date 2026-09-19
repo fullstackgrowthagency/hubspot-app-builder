@@ -1,8 +1,20 @@
 import { spawn } from 'node:child_process';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Resolve the CLI from this project's own node_modules/.bin rather than relying
+// on a global `npm install -g @hubspot/cli` and a PATH that includes it — that
+// assumption breaks on Passenger-managed/shared hosting (e.g. Hostinger's
+// hPanel Node.js apps) where global installs and PATH aren't guaranteed the way
+// they are on a VPS. `@hubspot/cli` is a regular (not dev) dependency so this
+// binary is present after a normal `npm install` in any hosting environment.
+const HS_BIN = path.resolve(__dirname, '../../node_modules/.bin/hs');
 
 export function checkCliAvailable() {
   return new Promise((resolve) => {
-    const child = spawn('hs', ['--version'], { stdio: 'ignore' });
+    const child = spawn(HS_BIN, ['--version'], { stdio: 'ignore' });
     child.on('error', () => resolve(false));
     child.on('exit', (code) => resolve(code === 0));
   });
@@ -15,7 +27,7 @@ export function checkCliAvailable() {
 // credentials or race on a shared config write.
 function runHsCommand({ args, label, projectDir, hubspotAccountId, personalAccessKey, onLog }) {
   return new Promise((resolve) => {
-    const child = spawn('hs', args, {
+    const child = spawn(HS_BIN, args, {
       cwd: projectDir,
       env: {
         ...process.env,

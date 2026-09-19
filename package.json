@@ -9,6 +9,7 @@
     "dev": "node src/server/index.js"
   },
   "dependencies": {
+    "@hubspot/cli": "^8.15.0",
     "express": "^4.19.2"
   }
 }
