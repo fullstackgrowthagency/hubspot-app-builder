@@ -15,7 +15,10 @@ export function checkCliAvailable() {
 // credentials or race on a shared config write.
 export function uploadProject({ projectDir, hubspotAccountId, personalAccessKey, onLog }) {
   return new Promise((resolve) => {
-    const child = spawn('hs', ['project', 'upload', '--use-env', '--no-color'], {
+    // --force skips the "project doesn't exist yet, create it?" interactive
+    // prompt on a portal's first deploy of a given app — required here since
+    // this runs with no TTY attached and would otherwise hang indefinitely.
+    const child = spawn('hs', ['project', 'upload', '--use-env', '--force', '--no-color'], {
       cwd: projectDir,
       env: {
         ...process.env,

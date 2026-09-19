@@ -1,5 +1,26 @@
 # Open items
 
+## Confirmed by a real deploy (2026-09-19)
+
+Ran the full pipeline — web form → generate → `POST /api/apps/:slug/deploy` →
+`hs project upload --use-env --force` — against a real HubSpot developer test
+account (portal 247447337). Result: build succeeded, both components
+(`*_app`, `*_pages`) built and deployed cleanly on the very first attempt, no
+template corrections needed.
+
+One fix this run surfaced: `hs project upload` prompts interactively ("project
+doesn't exist yet, create it?") on a portal's first deploy of a given app. With
+no TTY attached (as in a spawned child_process), this would hang forever.
+Fixed by adding `--force` to the upload command in `src/deploy/hs-cli.js`
+(`--forceCreate` also works but is deprecated in favor of `--force`).
+
+This also confirmed `requiredScopes: ["oauth"]` alone (no CRM scopes) is
+sufficient — the template doesn't request any CRM data, so it doesn't need any.
+
+Two test apps (`hab-test-app`, `hab-pipeline-check`) were deployed into that
+dev test account as part of this verification and are still live there;
+delete them with `hs project delete` if they're not wanted.
+
 ## Confirmed (verified against HubSpot's own source, not guessed)
 
 - Inline `<iframe>` is not supported in UI Extensions. Only `openIframeModal()`
@@ -24,16 +45,12 @@
   API — so this tool cannot fully self-verify without a real Personal Access Key
   from at least one HubSpot account (see below).
 
-## Not yet verified — needs a real deploy against a live portal
+## Still not verified
 
-- An actual `hs project upload` + `hs project deploy` against a real HubSpot
-  developer test account has not been run. Do this before pointing the tool at
-  a real client portal.
-- Whether `requiredScopes: ["oauth"]` alone (no CRM scopes) is sufficient for an
-  app that only opens a modal and makes no CRM API calls — HubSpot's own examples
-  always included CRM scopes because their sample apps also touched contacts;
-  ours doesn't need to, but this should be confirmed by an actual successful
-  validate/upload.
+- The deploy above confirms the project builds and deploys cleanly, but nobody
+  has visually confirmed the App Page actually shows up in HubSpot's nav/apps
+  icon and that the modal opens correctly in a browser — do that before
+  deploying to a real client.
 - Whether `permittedUrls.iframe` is actually enforced for `openIframeModal`
   targets. HubSpot's own `display-iframe-modal` example left it as `[]` while
   successfully opening Wikipedia in a modal, suggesting it may not be enforced
