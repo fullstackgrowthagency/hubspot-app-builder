@@ -1,9 +1,32 @@
 import crypto from 'node:crypto';
+import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { getEnv } from '../config/env.js';
 import { readJson, writeJson } from '../lib/fs.js';
 import { getPortalCredentials } from '../portals/service.js';
 import { uploadProject, installApp } from './hs-cli.js';
+
+// Turns HubSpot CLI's generic "unable to locate a project configuration file"
+// into something actionable: shows exactly which path was checked and, if it's
+// missing, whether its parent (the client's generated-apps folder) exists at
+// all — that distinguishes "never generated"/wrong slug from "existed, then
+// the directory disappeared" (e.g. a host wiping ephemeral disk mid-session).
+function describeMissingProject(projectDir) {
+  const parentDir = path.dirname(projectDir);
+  const lines = [`[diagnostic] Expected HubSpot project at: ${projectDir}`];
+  if (existsSync(parentDir)) {
+    let siblings;
+    try {
+      siblings = readdirSync(parentDir);
+    } catch (error) {
+      siblings = [`<could not list: ${error.message}>`];
+    }
+    lines.push(`[diagnostic] Parent directory exists. Contents: ${siblings.join(', ') || '(empty)'}`);
+  } else {
+    lines.push(`[diagnostic] Parent directory does not exist either: ${parentDir}`);
+  }
+  return lines.join('\n') + '\n';
+}
 
 function deployPath(deployId) {
   const env = getEnv();
@@ -78,6 +101,18 @@ export function startDeploy({ portalSlug, appSlug, projectDir }) {
     };
 
     appendLog('=== hs project upload ===\n');
+
+    const hsprojectPath = path.join(projectDir, 'hsproject.json');
+    if (!existsSync(hsprojectPath)) {
+      appendLog(describeMissingProject(projectDir));
+      await writeQueue;
+      record.exitCode = 1;
+      record.status = 'failed';
+      record.finishedAt = new Date().toISOString();
+      await writeJson(deployPath(deployId), record);
+      return;
+    }
+
     const upload = await uploadProject({
       projectDir,
       hubspotAccountId: credentials.hubspotAccountId,
