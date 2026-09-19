@@ -1,0 +1,5 @@
+{
+  "name": "{{appSlug}}",
+  "srcDir": "src",
+  "platformVersion": "{{platformVersion}}"
+}

@@ -1,0 +1,26 @@
+{
+  "uid": "{{appSlug}}_app",
+  "type": "app",
+  "config": {
+    "name": "{{appName}}",
+    "description": "{{description}}",
+    "distribution": "private",
+    "auth": {
+      "type": "static",
+      "requiredScopes": ["oauth"],
+      "optionalScopes": [],
+      "conditionallyRequiredScopes": []
+    },
+    "permittedUrls": {
+      "fetch": [],
+      "iframe": ["{{targetUrlOrigin}}"],
+      "img": []
+    },
+    "support": {
+      "supportEmail": "{{supportEmail}}",
+      "documentationUrl": "{{targetUrl}}",
+      "supportUrl": "{{targetUrl}}",
+      "supportPhone": "+10000000000"
+    }
+  }
+}

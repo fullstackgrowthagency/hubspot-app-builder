@@ -1,0 +1,17 @@
+# macOS / editor noise
+.DS_Store
+*.swp
+*.swo
+
+# Dependencies
+node_modules/
+
+# Secret or machine-local files
+.env
+**/*.key
+**/*.pem
+
+# Local runtime state: portal credentials, generated HubSpot projects, deploy logs
+data/secrets/
+data/generated-apps/
+data/deploys/

@@ -1,0 +1,45 @@
+:root {
+  color-scheme: light dark;
+  --border: #d0d5dd;
+  --muted: #667085;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+h1 { margin-bottom: 0.25rem; }
+.subtitle { color: var(--muted); margin-top: 0; }
+
+section {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+form { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem; }
+label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.9rem; }
+input, select { padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; font-size: 1rem; }
+button { align-self: start; padding: 0.5rem 1rem; border-radius: 4px; border: none; background: #ff7a59; color: white; font-weight: 600; cursor: pointer; }
+button:disabled { background: var(--border); cursor: not-allowed; }
+.hint { color: var(--muted); font-size: 0.85rem; margin: 0; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 0.4rem; border-bottom: 1px solid var(--border); }
+
+#deploy-log {
+  background: #101828;
+  color: #eaecf0;
+  padding: 0.75rem;
+  border-radius: 6px;
+  min-height: 4rem;
+  max-height: 20rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  font-size: 0.8rem;
+  margin-top: 0.75rem;
+}

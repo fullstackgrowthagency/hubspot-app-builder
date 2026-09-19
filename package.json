@@ -1,0 +1,14 @@
+{
+  "name": "hubspot-app-builder",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Generates and deploys HubSpot apps that wrap an external URL, one per client portal.",
+  "scripts": {
+    "start": "node src/server/index.js",
+    "dev": "node src/server/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

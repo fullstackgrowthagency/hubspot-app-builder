@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HubSpot App Builder</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main>
+    <h1>HubSpot App Builder</h1>
+    <p class="subtitle">Generate and deploy a HubSpot app that opens a URL for a client portal.</p>
+
+    <section id="clients-section">
+      <h2>1. Client portals</h2>
+      <table id="clients-table">
+        <thead><tr><th>Client</th><th>HubSpot Account ID</th><th></th></tr></thead>
+        <tbody id="clients-body"></tbody>
+      </table>
+
+      <details>
+        <summary>Add a client portal</summary>
+        <form id="client-form">
+          <label>Display name <input name="displayName" required placeholder="Acme Co" /></label>
+          <label>HubSpot Account ID <input name="hubspotAccountId" required placeholder="12345678" /></label>
+          <label>Personal Access Key <input name="personalAccessKey" required type="password" placeholder="pat-..." /></label>
+          <p class="hint">Generate this in that client's HubSpot developer/private-app settings. It's encrypted at rest and never shown again after saving.</p>
+          <button type="submit">Add client</button>
+        </form>
+      </details>
+    </section>
+
+    <section id="app-section">
+      <h2>2. New app</h2>
+      <form id="app-form">
+        <label>Client portal
+          <select name="clientSlug" id="client-select" required></select>
+        </label>
+        <label>App name <input name="appName" required placeholder="Client Dashboard" /></label>
+        <label>Nav label <input name="navLabel" required placeholder="Client Dashboard" /></label>
+        <label>Target URL <input name="targetUrl" required type="url" placeholder="https://example.com/dashboard" /></label>
+        <label>Description <input name="description" placeholder="Opens the client dashboard inside HubSpot." /></label>
+        <label>Support email <input name="supportEmail" type="email" placeholder="support@fullstackgrowthagency.com" /></label>
+        <p class="hint">Names/labels can't contain quotes or angle/curly brackets.</p>
+        <button type="submit">Generate app</button>
+      </form>
+      <div id="generate-result"></div>
+    </section>
+
+    <section id="deploy-section">
+      <h2>3. Deploy</h2>
+      <p id="deploy-status" class="hint">Generate an app above, then deploy it.</p>
+      <button id="deploy-button" disabled>Deploy to HubSpot</button>
+      <pre id="deploy-log"></pre>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>

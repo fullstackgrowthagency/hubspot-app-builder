@@ -1,0 +1,7 @@
+{
+  "uid": "{{appSlug}}_pages",
+  "type": "page",
+  "config": {
+    "entrypoint": "/app/pages/Pages.jsx"
+  }
+}
