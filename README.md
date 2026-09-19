@@ -75,6 +75,38 @@ Open the printed URL (default `http://127.0.0.1:4173`).
    — this app manages real client credentials and can trigger real deploys into
    real HubSpot portals.
 
+## Deploying to Render (free live preview)
+
+Vercel-style serverless hosting doesn't fit this app: a deploy keeps running in
+the background after `POST /api/apps/:slug/deploy` returns (so the UI can poll
+for status), and a single HubSpot deploy can take 20 seconds to ~2 minutes with
+the install-step retry backoff — both break under a platform that freezes/kills
+the function right after it responds and caps execution at ~10 seconds.
+[Render](https://render.com)'s free tier runs a real persistent Node process
+instead, so nothing about this app needs to change to run there.
+
+1. Create a free Render account (no credit card required for a free Web
+   Service) and connect it to GitHub.
+2. **New → Web Service**, pick `fullstackgrowthagency/hubspot-app-builder`.
+   Environment: **Node**. Build command: `npm install`. Start command:
+   `npm start`.
+3. Set environment variables in Render's dashboard (not a `.env` file, same
+   reasoning as the Hostinger section above): `HAB_SECRET_KEY`,
+   `HAB_BASIC_AUTH_USER`, `HAB_BASIC_AUTH_PASSWORD`. Leave `PORT`/`HAB_HOST`
+   alone — Render assigns `PORT` itself and the app already binds to `0.0.0.0`
+   and reads it.
+4. Render auto-deploys on every push to `main` once the repo is connected.
+
+**Free-tier trade-offs, know these going in:** the service spins down after
+~15 minutes idle, so the first request after a quiet period takes 30-60s to
+wake it back up. The disk is **not persistent across redeploys or restarts** —
+`data/` (the client registry, generated HubSpot projects, deploy history) resets
+each time the service restarts, not just each time you push. That makes the
+free tier fine for a live functional preview or one-off test session, but not
+a durable home for real client credentials — treat anything added there as
+temporary until this moves to a host with persistent storage (a paid Render
+disk, a VPS, or similar).
+
 ## Project layout
 
 - `templates/iframe-app/` — the HubSpot developer-project template (verified
