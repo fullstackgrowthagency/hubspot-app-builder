@@ -21,6 +21,30 @@ Two test apps (`hab-test-app`, `hab-pipeline-check`) were deployed into that
 dev test account as part of this verification and are still live there;
 delete them with `hs project delete` if they're not wanted.
 
+## Confirmed (2026-09-19, follow-up): upload alone does not install the app
+
+The user reported the deployed apps showed up under **Projects** in the HubSpot
+developer dashboard but not in **Connected Apps** or the **Apps** section of the
+regular HubSpot UI. Root cause: `hs project upload` only creates a build in the
+developer account — for a static-auth private app, it has to be separately
+**installed** into the target account (`hs project install-app`, or "Install now"
+under the project's Distribution tab in the HubSpot UI) before it's usable or
+visible outside the dev Projects view. `src/deploy/deploy-service.js` now chains
+`installApp` after a successful `uploadProject`.
+
+**Also confirmed by hand**: `install-app` run immediately after a successful
+upload reliably 404s with `Couldn't find the public app '<id>'`, even though
+`hs project info` / `app-install-status` already report that exact app ID as
+existing — an eventual-consistency lag in HubSpot's backend between the service
+that creates the app record and the one `install-app` queries. An identical
+retry seconds later still failed; success only came after ~45-70s. `install-app`
+is idempotent (a second call on an already-installed app reports "already
+installed" and exits 0), so `installWithRetry` in `deploy-service.js` retries
+with backoff (5s, 10s, 20s, 30s, 30s) rather than failing the deploy outright.
+Verified end-to-end through the real API (not just raw CLI): a fresh app
+deploy recovered automatically after 3 retries (~35s) with no manual
+intervention, `status: succeeded`.
+
 ## Confirmed (verified against HubSpot's own source, not guessed)
 
 - Inline `<iframe>` is not supported in UI Extensions. Only `openIframeModal()`

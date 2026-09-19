@@ -13,12 +13,9 @@ export function checkCliAvailable() {
 // avoids ever touching the shared ~/.hscli config file (hs account add/init), so
 // concurrent deploys to different client portals can never see each other's
 // credentials or race on a shared config write.
-export function uploadProject({ projectDir, hubspotAccountId, personalAccessKey, onLog }) {
+function runHsCommand({ args, label, projectDir, hubspotAccountId, personalAccessKey, onLog }) {
   return new Promise((resolve) => {
-    // --force skips the "project doesn't exist yet, create it?" interactive
-    // prompt on a portal's first deploy of a given app — required here since
-    // this runs with no TTY attached and would otherwise hang indefinitely.
-    const child = spawn('hs', ['project', 'upload', '--use-env', '--force', '--no-color'], {
+    const child = spawn('hs', args, {
       cwd: projectDir,
       env: {
         ...process.env,
@@ -31,7 +28,7 @@ export function uploadProject({ projectDir, hubspotAccountId, personalAccessKey,
     child.stderr.on('data', (chunk) => onLog?.(chunk.toString('utf8')));
 
     child.on('error', (error) => {
-      onLog?.(`\n[hs project upload failed to start] ${error.message}\n`);
+      onLog?.(`\n[${label} failed to start] ${error.message}\n`);
       resolve({ exitCode: null, error: error.message });
     });
 
@@ -40,5 +37,34 @@ export function uploadProject({ projectDir, hubspotAccountId, personalAccessKey,
     child.on('close', (code) => {
       resolve({ exitCode: code, error: null });
     });
+  });
+}
+
+// --force skips the "project doesn't exist yet, create it?" interactive prompt
+// on a portal's first deploy of a given app — required here since this runs
+// with no TTY attached and would otherwise hang indefinitely.
+export function uploadProject({ projectDir, hubspotAccountId, personalAccessKey, onLog }) {
+  return runHsCommand({
+    args: ['project', 'upload', '--use-env', '--force', '--no-color'],
+    label: 'hs project upload',
+    projectDir,
+    hubspotAccountId,
+    personalAccessKey,
+    onLog
+  });
+}
+
+// Uploading only creates a build in the developer account's Projects list — it
+// does NOT make a static-auth private app usable anywhere. It has to be
+// separately installed into the target account, which is what makes it show up
+// under Connected Apps / the apps nav icon instead of just the dev Projects view.
+export function installApp({ projectDir, hubspotAccountId, personalAccessKey, onLog }) {
+  return runHsCommand({
+    args: ['project', 'install-app', '--use-env', '--force', '--no-color'],
+    label: 'hs project install-app',
+    projectDir,
+    hubspotAccountId,
+    personalAccessKey,
+    onLog
   });
 }
