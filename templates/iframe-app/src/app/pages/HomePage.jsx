@@ -8,15 +8,20 @@ import { PageBreadcrumbs, PageTitle } from '@hubspot/ui-extensions/pages';
 // it if the visitor closes the modal.
 //
 // openIframeModal's height/width are required fixed pixel numbers — HubSpot's
-// API has no percentage or fullscreen option — so the modal is sized from the
-// viewer's actual browser viewport at open time instead of a hardcoded value,
-// leaving a small margin for the modal's own chrome rather than requesting the
-// exact viewport size.
+// API has no percentage or fullscreen option. This extension itself runs inside
+// HubSpot's own embedding iframe, so window.innerWidth/innerHeight here reflect
+// that embedding frame's size, not the actual browser window (confirmed: sizing
+// off innerWidth/innerHeight opened the same modest size as the old hardcoded
+// value). window.screen reflects the physical display instead, and — unlike
+// reaching into a parent frame — is readable from any frame regardless of
+// nesting or cross-origin embedding, so it actually tracks the viewer's real
+// screen. Leave a margin for the modal's own chrome rather than requesting the
+// exact screen size.
 function modalSize() {
-  if (typeof window === 'undefined') return { height: 900, width: 1400 };
+  if (typeof window === 'undefined' || !window.screen) return { height: 900, width: 1400 };
   return {
-    height: Math.floor(window.innerHeight * 0.9),
-    width: Math.floor(window.innerWidth * 0.95)
+    height: Math.floor(window.screen.availHeight * 0.9),
+    width: Math.floor(window.screen.availWidth * 0.95)
   };
 }
 
