@@ -31,6 +31,18 @@ function runHsCommand({ args, label, projectDir, hubspotAccountId, personalAcces
       cwd: projectDir,
       env: {
         ...process.env,
+        // HubSpot's own local-dev-lib resolves "cwd" for project-file lookup by
+        // checking INIT_CWD before process.cwd() — and INIT_CWD is set by npm to
+        // wherever `npm start` was originally invoked from (the app's root), not
+        // wherever we actually run. Since we spread process.env above, that stale
+        // value would otherwise silently win over the cwd option, making the CLI
+        // search the app root for hsproject.json instead of projectDir and fail
+        // with "Unable to locate a project configuration file" even though the
+        // file is right there. Only reproduces when the parent process itself
+        // was started via `npm start`/`npm run` (e.g. Render), not `node ...`
+        // directly, which is why local testing never hit it.
+        INIT_CWD: projectDir,
+        PWD: projectDir,
         HUBSPOT_ACCOUNT_ID: hubspotAccountId,
         HUBSPOT_PERSONAL_ACCESS_KEY: personalAccessKey
       }
