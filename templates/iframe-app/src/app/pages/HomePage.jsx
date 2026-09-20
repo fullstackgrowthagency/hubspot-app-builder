@@ -8,22 +8,15 @@ import { PageBreadcrumbs, PageTitle } from '@hubspot/ui-extensions/pages';
 // it if the visitor closes the modal.
 //
 // openIframeModal's height/width are required fixed pixel numbers — HubSpot's
-// API has no percentage or fullscreen option. This extension itself runs inside
-// HubSpot's own embedding iframe, so window.innerWidth/innerHeight here reflect
-// that embedding frame's size, not the actual browser window (confirmed: sizing
-// off innerWidth/innerHeight opened the same modest size as the old hardcoded
-// value). window.screen reflects the physical display instead, and — unlike
-// reaching into a parent frame — is readable from any frame regardless of
-// nesting or cross-origin embedding, so it actually tracks the viewer's real
-// screen. Leave a margin for the modal's own chrome rather than requesting the
-// exact screen size.
-function modalSize() {
-  if (typeof window === 'undefined' || !window.screen) return { height: 900, width: 1400 };
-  return {
-    height: Math.floor(window.screen.availHeight * 0.9),
-    width: Math.floor(window.screen.availWidth * 0.95)
-  };
-}
+// API has no percentage or fullscreen option. Reading the real screen size from
+// inside this extension's sandboxed iframe (via window.innerWidth/innerHeight,
+// then window.screen.availWidth/availHeight) didn't change the rendered modal
+// size at all across multiple tests, so neither reflects anything usable here.
+// Requesting deliberately oversized values instead relies on the modal being
+// clamped to whatever space is actually available, which is the largest this
+// platform allows regardless of the viewer's actual screen.
+const MODAL_HEIGHT = 2000;
+const MODAL_WIDTH = 3000;
 
 export const HomePage = () => {
   const { openIframeModal } = useExtensionActions();
@@ -31,7 +24,8 @@ export const HomePage = () => {
   const openTarget = () => {
     openIframeModal({
       uri: '{{targetUrl}}',
-      ...modalSize(),
+      height: MODAL_HEIGHT,
+      width: MODAL_WIDTH,
       title: '{{navLabel}}',
       flush: true
     });
