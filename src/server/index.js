@@ -39,7 +39,8 @@ if (env.basicAuthUser && env.basicAuthPassword) {
   });
 }
 
-app.use(express.json());
+// Default 100kb is too small for a base64-encoded icon upload (see routes/apps.js).
+app.use(express.json({ limit: '5mb' }));
 app.use(express.static(path.join(__dirname, 'views')));
 app.use('/api/clients', clientsRouter);
 app.use('/api/apps', appsRouter);

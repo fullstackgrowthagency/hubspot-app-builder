@@ -53,9 +53,37 @@ clientForm.addEventListener('submit', async (event) => {
   await loadClients();
 });
 
+const ACCEPTED_ICON_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/bmp'];
+const MAX_ICON_BYTES = 2 * 1024 * 1024;
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error('Failed to read file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
 appForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const body = Object.fromEntries(new FormData(appForm).entries());
+  const formData = new FormData(appForm);
+  const iconFile = formData.get('icon');
+  formData.delete('icon');
+  const body = Object.fromEntries(formData.entries());
+
+  if (iconFile && iconFile.size > 0) {
+    if (!ACCEPTED_ICON_TYPES.includes(iconFile.type)) {
+      generateResult.textContent = 'Icon must be PNG, JPEG, GIF, or BMP.';
+      return;
+    }
+    if (iconFile.size > MAX_ICON_BYTES) {
+      generateResult.textContent = 'Icon must be 2MB or smaller.';
+      return;
+    }
+    body.icon = await readFileAsDataUrl(iconFile);
+  }
+
   generateResult.textContent = 'Generating…';
   const res = await fetch('/api/apps', {
     method: 'POST',

@@ -10,13 +10,13 @@ export const appsRouter = express.Router();
 
 appsRouter.post('/', async (req, res) => {
   try {
-    const { clientSlug, appName, navLabel, targetUrl, description, supportEmail } = req.body;
+    const { clientSlug, appName, navLabel, targetUrl, description, supportEmail, icon } = req.body;
     if (!clientSlug) return res.status(400).json({ error: 'clientSlug is required.' });
 
     const portal = await getPortal(clientSlug);
     if (!portal) return res.status(404).json({ error: 'Unknown client portal.' });
 
-    const result = await buildProject({ clientSlug, appName, navLabel, targetUrl, description, supportEmail });
+    const result = await buildProject({ clientSlug, appName, navLabel, targetUrl, description, supportEmail, icon });
     res.status(201).json(result);
   } catch (error) {
     res.status(400).json({ error: error.message });

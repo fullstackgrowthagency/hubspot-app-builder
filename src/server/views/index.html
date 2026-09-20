@@ -41,7 +41,10 @@
         <label>Target URL <input name="targetUrl" required type="url" placeholder="https://example.com/dashboard" /></label>
         <label>Description <input name="description" placeholder="Opens the client dashboard inside HubSpot." /></label>
         <label>Support email <input name="supportEmail" type="email" placeholder="support@fullstackgrowthagency.com" /></label>
-        <p class="hint">Names/labels can't contain quotes or angle/curly brackets.</p>
+        <label>App icon (optional)
+          <input name="icon" type="file" accept=".png,.jpg,.jpeg,.gif,.bmp,image/png,image/jpeg,image/gif,image/bmp" />
+        </label>
+        <p class="hint">Icon: PNG, JPEG, GIF, or BMP only (no SVG), 2MB max. Names/labels can't contain quotes or angle/curly brackets.</p>
         <button type="submit">Generate app</button>
       </form>
       <div id="generate-result"></div>

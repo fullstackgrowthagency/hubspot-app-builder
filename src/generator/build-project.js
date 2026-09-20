@@ -2,9 +2,33 @@ import { cp, readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getEnv } from '../config/env.js';
-import { ensureDir, writeJson } from '../lib/fs.js';
+import { ensureDir, readJson, writeJson } from '../lib/fs.js';
 import { slugify } from '../lib/slug.js';
 import { renderTemplateString } from './render.js';
+
+// HubSpot's app-hsmeta.json "logo" field only accepts these formats (no SVG).
+const ICON_EXTENSIONS_BY_MIME = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/gif': 'gif',
+  'image/bmp': 'bmp'
+};
+
+// icon arrives as a data: URL (e.g. "data:image/png;base64,...") from the
+// client's FileReader.readAsDataURL(). The client already validates type/size,
+// but that's advisory only — re-validate here since this is the boundary that
+// actually matters.
+function parseIconDataUrl(dataUrl) {
+  const match = /^data:([^;]+);base64,(.+)$/i.exec(dataUrl);
+  if (!match) throw new Error('icon must be a base64 data URL.');
+  const [, mimeType, base64] = match;
+  const extension = ICON_EXTENSIONS_BY_MIME[mimeType.toLowerCase()];
+  if (!extension) {
+    throw new Error(`icon must be PNG, JPEG, GIF, or BMP (got ${mimeType}).`);
+  }
+  return { buffer: Buffer.from(base64, 'base64'), extension };
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_DIR = path.resolve(__dirname, '../../templates/iframe-app');
@@ -57,7 +81,8 @@ export async function buildProject({
   navLabel,
   targetUrl,
   description,
-  supportEmail
+  supportEmail,
+  icon
 }) {
   if (!clientSlug) throw new Error('clientSlug is required.');
   if (!appName) throw new Error('appName is required.');
@@ -100,6 +125,21 @@ export async function buildProject({
     } else {
       await cp(srcPath, destPath);
     }
+  }
+
+  if (icon) {
+    const { buffer, extension } = parseIconDataUrl(icon);
+    const logoPath = `app-logo.${extension}`;
+    await writeFile(path.join(projectDir, 'src', 'app', logoPath), buffer);
+
+    // Patch app-hsmeta.json after the fact rather than templating the "logo"
+    // field conditionally — the {{token}} engine is a flat string substitution
+    // with no support for conditional JSON, and hand-rolling that risks a
+    // stray/missing comma silently breaking every generated project's manifest.
+    const appHsmetaPath = path.join(projectDir, 'src', 'app', 'app-hsmeta.json');
+    const appHsmeta = await readJson(appHsmetaPath);
+    appHsmeta.config.logo = `/app/${logoPath}`;
+    await writeJson(appHsmetaPath, appHsmeta);
   }
 
   await writeJson(path.join(projectDir, '.generated-by-hab.json'), {
